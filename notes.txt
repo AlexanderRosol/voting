@@ -1,0 +1,30 @@
+Authentication
+POST /auth/token — request bearer token (maybe)
+
+Users
+GET /users — list users
+POST /users — create user
+GET /users/{userId} — get user by ID
+PUT /users/{userId} — update user
+DELETE /users/{userId} — delete user
+
+Polls
+GET /polls — list polls
+POST /polls — create poll
+GET /polls/{pollId} — get poll by ID
+PUT /polls/{pollId} — update poll
+DELETE /polls/{pollId} — delete poll
+
+Poll options
+GET /polls/{pollId}/options — list poll options
+POST /polls/{pollId}/options — add option to poll
+
+Voting
+POST /polls/{pollId}/votes — cast a vote
+
+Results
+GET /polls/{pollId}/results — get poll results (calculated on the fly)
+
+Vote records
+GET /votes/{voteId} — get a vote record
+DELETE /votes/{voteId} — delete a vote
