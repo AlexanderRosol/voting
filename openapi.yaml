@@ -33,8 +33,8 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         username:
           type: string
           maxLength: 30
@@ -65,16 +65,16 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         title:
           type: string
           maxLength: 120
         description:
           type: string
         created_by:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         status:
           type: string
           enum:
@@ -101,9 +101,6 @@ components:
           maxLength: 120
         description:
           type: string
-        created_by:
-          type: integer
-          format: int64
         status:
           type: string
           enum:
@@ -115,16 +112,15 @@ components:
           format: date-time
       required:
         - title
-        - created_by
     PollOption:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         poll_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         option_text:
           type: string
           maxLength: 100
@@ -149,17 +145,17 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         user_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         poll_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         option_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         voted_at:
           type: string
           format: date-time
@@ -172,14 +168,10 @@ components:
     VoteInput:
       type: object
       properties:
-        user_id:
-          type: integer
-          format: int64
         option_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
       required:
-        - user_id
         - option_id
     TokenRequest:
       type: object
@@ -275,8 +267,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '200':
           description: User retrieved
@@ -305,8 +297,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -347,8 +339,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '204':
           description: User deleted successfully
@@ -423,8 +415,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '200':
           description: Poll retrieved
@@ -438,6 +430,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '403':
+!          description: Authorization error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Poll not found
           content:
@@ -446,15 +444,15 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
-    put:
+    patch:
       summary: Update a poll
       parameters:
         - name: pollId
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -495,8 +493,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '204':
           description: Poll deleted successfully
@@ -522,8 +520,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '200':
           description: Poll options retrieved
@@ -554,8 +552,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -590,6 +588,38 @@ paths:
       security:
         - bearerAuth: []
   /polls/{pollId}/votes:
+    get:
+      summary: List all votes of a poll
+      parameters:
+        - name: pollId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of all votes retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Poll not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []     
     post:
       summary: Cast a vote for a poll option
       parameters:
@@ -597,8 +627,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -646,8 +676,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '200':
           description: Poll results returned
@@ -693,8 +723,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '200':
           description: Vote retrieved
@@ -723,8 +753,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         '204':
           description: Vote deleted successfully
@@ -740,5 +770,5 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
