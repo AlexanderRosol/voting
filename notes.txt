@@ -18,6 +18,8 @@ DELETE /polls/{pollId} — delete poll
 Poll options
 GET /polls/{pollId}/options — list poll options
 POST /polls/{pollId}/options — add option to poll
+PUT /polls/{pollId}/options — update poll options
+DELETE /polls/{pollId} - delete poll
 
 Voting
 POST /polls/{pollId}/votes — cast a vote
