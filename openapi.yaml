@@ -8,14 +8,14 @@ info:
 servers:
   - url: https://api.example.com
     description: Production server
-#security:
-#  - bearerAuth: []
+security:
+  - bearerAuth: []
 components:
-#  securitySchemes:
-#    bearerAuth:
-#      type: http
-#      scheme: bearer
-#      bearerFormat: JWT
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ErrorResponse:
       type: object
@@ -203,29 +203,29 @@ components:
         - access_token
         - token_type
 paths:
-#  /auth/token:
-#    post:
-#      summary: Request authentication token
-#      description: Returns a bearer token for an authenticated user.
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              $ref: '#/components/schemas/TokenRequest'
-#      responses:
-#        '200':
-#          description: Token created successfully
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/TokenResponse'
-#        '400':
-#          description: Invalid credentials or request format
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/ErrorResponse'
+  /auth/token:
+    post:
+      summary: Request authentication token
+      description: Returns a bearer token for an authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Token created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid credentials or request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /users:
     get:
       summary: List voters
@@ -244,8 +244,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     post:
       summary: Create a new user
       requestBody:
@@ -296,8 +296,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     put:
       summary: Update a user
       parameters:
@@ -338,8 +338,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     delete:
       summary: Delete a user
       parameters:
@@ -364,8 +364,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /polls:
     get:
       summary: List all polls
@@ -384,8 +384,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     post:
       summary: Create a new poll
       requestBody:
@@ -413,8 +413,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /polls/{pollId}:
     get:
       summary: Get a poll by ID
@@ -444,8 +444,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     put:
       summary: Update a poll
       parameters:
@@ -486,8 +486,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     delete:
       summary: Delete a poll
       parameters:
@@ -512,8 +512,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /polls/{pollId}/options:
     get:
       summary: List all options for a poll
@@ -545,8 +545,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
     post:
       summary: Add a new option to a poll
       parameters:
@@ -587,8 +587,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /polls/{pollId}/votes:
     post:
       summary: Cast a vote for a poll option
@@ -636,8 +636,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /polls/{pollId}/results:
     get:
       summary: Get poll voting results
@@ -683,8 +683,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#        - bearerAuth: []
+      security:
+        - bearerAuth: []
   /votes/{voteId}:
     get:
       summary: Get a specific vote record
@@ -714,8 +714,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-#      security:
-#       - bearerAuth: []
+      security:
+       - bearerAuth: []
     delete:
       summary: Delete a vote
       parameters:
