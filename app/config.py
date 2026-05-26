@@ -1,7 +1,4 @@
-SECRET_KEY = 'dev'  # does not matter - for lab only
-
 JSON_SORT_KEYS = False
-TEMPLATES_AUTO_RELOAD = True
 
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2:///voting'
 
