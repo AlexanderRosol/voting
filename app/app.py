@@ -1,49 +1,59 @@
 import os
-import sys
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore, hash_password
-from flask_babel import Babel
+from flask_jwt_extended import JWTManager
+from flasgger import Swagger
 
 
 db = SQLAlchemy()
-security = Security()
+jwt = JWTManager()
 
 
-def create_app():
+def create_app(test_config=None):
 
     app = Flask(__name__, instance_relative_config=False)
 
     app.config.from_pyfile('config.py')
 
-    app.debug = True
+    if test_config:
+        app.config.update(test_config)
+
+    app.debug = app.config.get('DEBUG', True)
 
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
 
-    Babel(app)
-
     db.init_app(app)
+    jwt.init_app(app)
 
-    from .models import User, Role
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-    security.init_app(app, user_datastore)
+    Swagger(app, template_file=os.path.join(os.path.dirname(__file__), 'openapi.yaml'))
 
-    with app.app_context():
-        db.create_all()
-        if not user_datastore.find_user(email="test@example.com"):
-            user_datastore.create_user(
-                email="test@example.com",
-                username="test",
-                password=hash_password("test567")
-            )
-            db.session.commit()
+    from . import models  # noqa: F401 - register mappers
+
+    if not app.config.get('TESTING'):
+        with app.app_context():
+            db.create_all()
 
     @app.errorhandler(404)
     def page_not_found(e):
         return jsonify({"code": 404, "message": "Not Found"}), 404
+
+    @jwt.unauthorized_loader
+    def jwt_missing_token(reason):
+        return jsonify({"code": 401, "message": "Authentication required"}), 401
+
+    @jwt.invalid_token_loader
+    def jwt_invalid_token(reason):
+        return jsonify({"code": 401, "message": "Invalid token"}), 401
+
+    @jwt.expired_token_loader
+    def jwt_expired_token(jwt_header, jwt_payload):
+        return jsonify({"code": 401, "message": "Token expired"}), 401
+
+    from .views.auth import bp as bp_auth
+    app.register_blueprint(bp_auth)
 
     from .views.users import bp as bp_users
     app.register_blueprint(bp_users)
@@ -74,4 +84,5 @@ def create_app():
                 response.headers['Access-Control-Allow-Headers'] = http_access_ctrl_req_headers
 
         return response
+
     return app
