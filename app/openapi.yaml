@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+swagger: "2.0"
 
 info:
   title: Voting Application API
@@ -8,756 +8,686 @@ info:
     REST API for a voting application with polls, options, voters, and votes.
     This specification supports token-based authorization in the HTTP header.
 
-servers:
-  - url: http://127.0.0.1:5000
-    description: Local development server
+host: 127.0.0.1:5000
+basePath: /
+schemes:
+  - http
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+
+  - name: Users
+    description: User management
+
+  - name: Polls
+    description: Poll management
+
+  - name: Poll Options
+    description: Poll option operations
+
+  - name: Votes
+    description: Voting operations
+
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: |
+      JWT Authorization header using the Bearer scheme.
+      Example: "Bearer {token}"
 
 security:
   - bearerAuth: []
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+definitions:
 
-  schemas:
+  ErrorResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        example: 400
+      message:
+        type: string
+        example: Invalid request payload
+    required:
+      - code
+      - message
 
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-          examples:
-            - 400
-        message:
-          type: string
-          examples:
-            - Invalid request payload
-      required:
-        - code
-        - message
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      username:
+        type: string
+        maxLength: 30
+      email:
+        type: string
+        format: email
+      created_at:
+        type: string
+        format: date-time
+    required:
+      - id
+      - username
+      - email
+      - created_at
 
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        username:
-          type: string
-          maxLength: 30
-        email:
-          type: string
-          format: email
-        created_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - username
-        - email
-        - created_at
+  UserInput:
+    type: object
+    properties:
+      username:
+        type: string
+        maxLength: 30
+      email:
+        type: string
+        format: email
+    required:
+      - username
+      - email
 
-    UserInput:
-      type: object
-      properties:
-        username:
-          type: string
-          maxLength: 30
-        email:
-          type: string
-          format: email
-      required:
-        - username
-        - email
+  Poll:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      title:
+        type: string
+        maxLength: 120
+      description:
+        type: string
+      created_by:
+        type: string
+        format: uuid
+      status:
+        type: string
+        enum:
+          - active
+          - closed
+          - draft
+      created_at:
+        type: string
+        format: date-time
+      expires_at:
+        type: string
+        format: date-time
+    required:
+      - id
+      - title
+      - created_by
+      - status
+      - created_at
 
-    Poll:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-          maxLength: 120
-        description:
-          type: string
-        created_by:
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum:
-            - active
-            - closed
-            - draft
-        created_at:
-          type: string
-          format: date-time
-        expires_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - title
-        - created_by
-        - status
-        - created_at
+  PollInput:
+    type: object
+    properties:
+      title:
+        type: string
+        maxLength: 120
+      description:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - closed
+          - draft
+      expires_at:
+        type: string
+        format: date-time
+    required:
+      - title
 
-    PollInput:
-      type: object
-      properties:
-        title:
-          type: string
-          maxLength: 120
-        description:
-          type: string
-        status:
-          type: string
-          enum:
-            - active
-            - closed
-            - draft
-        expires_at:
-          type: string
-          format: date-time
-      required:
-        - title
+  PollOption:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      poll_id:
+        type: string
+        format: uuid
+      option_text:
+        type: string
+        maxLength: 100
+      display_order:
+        type: integer
+    required:
+      - id
+      - poll_id
+      - option_text
+      - display_order
 
-    PollOption:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        poll_id:
-          type: string
-          format: uuid
-        option_text:
-          type: string
-          maxLength: 100
-        display_order:
-          type: integer
-      required:
-        - id
-        - poll_id
-        - option_text
-        - display_order
+  PollOptionInput:
+    type: object
+    properties:
+      option_text:
+        type: string
+        maxLength: 100
+      display_order:
+        type: integer
+    required:
+      - option_text
 
-    PollOptionInput:
-      type: object
-      properties:
-        option_text:
-          type: string
-          maxLength: 100
-        display_order:
-          type: integer
-      required:
-        - option_text
+  Vote:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      user_id:
+        type: string
+        format: uuid
+      poll_id:
+        type: string
+        format: uuid
+      option_id:
+        type: string
+        format: uuid
+      voted_at:
+        type: string
+        format: date-time
+    required:
+      - id
+      - user_id
+      - poll_id
+      - option_id
+      - voted_at
 
-    Vote:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-          format: uuid
-        poll_id:
-          type: string
-          format: uuid
-        option_id:
-          type: string
-          format: uuid
-        voted_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - user_id
-        - poll_id
-        - option_id
-        - voted_at
+  VoteInput:
+    type: object
+    properties:
+      option_id:
+        type: string
+        format: uuid
+    required:
+      - option_id
 
-    VoteInput:
-      type: object
-      properties:
-        option_id:
-          type: string
-          format: uuid
-      required:
-        - option_id
+  TokenRequest:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    required:
+      - username
+      - password
 
-    TokenRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-      required:
-        - username
-        - password
-
-    TokenResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-        token_type:
-          type: string
-          examples:
-            - bearer
-      required:
-        - access_token
-        - token_type
+  TokenResponse:
+    type: object
+    properties:
+      access_token:
+        type: string
+      token_type:
+        type: string
+        example: bearer
+    required:
+      - access_token
+      - token_type
 
 paths:
 
   /auth/token:
     post:
+      tags:
+        - Auth
       summary: Request authentication token
       description: Returns a bearer token for an authenticated user.
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenRequest'
+
+      consumes:
+        - application/json
+
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenRequest'
+
       responses:
-        '200':
+        200:
           description: Token created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '400':
+          schema:
+            $ref: '#/definitions/TokenResponse'
+
+        400:
           description: Invalid credentials or request format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /users:
+
     get:
+      tags:
+        - Users
       summary: List voters
+
       responses:
-        '200':
+        200:
           description: A list of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-        '401':
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+
+        401:
           description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     post:
+      tags:
+        - Users
       summary: Create a new user
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
+
+      consumes:
+        - application/json
+
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserInput'
+
       responses:
-        '201':
+        201:
           description: User created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
+          schema:
+            $ref: '#/definitions/User'
+
+        400:
           description: Invalid user data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /users/{userId}:
+
     get:
+      tags:
+        - Users
       summary: Get a specific user
+
       parameters:
         - name: userId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: User retrieved
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
+          schema:
+            $ref: '#/definitions/User'
+
+        401:
           description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+        404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     put:
+      tags:
+        - Users
       summary: Update a user
+
+      consumes:
+        - application/json
+
       parameters:
         - name: userId
           in: path
           required: true
+          type: string
+          format: uuid
+
+        - in: body
+          name: body
+          required: true
           schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
+            $ref: '#/definitions/UserInput'
+
       responses:
-        '200':
+        200:
           description: User updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
+          schema:
+            $ref: '#/definitions/User'
+
+        400:
           description: Invalid update payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+        401:
           description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+        404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     delete:
+      tags:
+        - Users
       summary: Delete a user
+
       parameters:
         - name: userId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '204':
+        204:
           description: User deleted successfully
-        '401':
+
+        401:
           description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+        404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /polls:
+
     get:
+      tags:
+        - Polls
       summary: List all polls
       security: []
+
       responses:
-        '200':
+        200:
           description: A list of polls
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Poll'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Poll'
 
     post:
+      tags:
+        - Polls
       summary: Create a new poll
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PollInput'
+
+      consumes:
+        - application/json
+
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/PollInput'
+
       responses:
-        '201':
+        201:
           description: Poll created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Poll'
-        '400':
+          schema:
+            $ref: '#/definitions/Poll'
+
+        400:
           description: Invalid poll data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /polls/{pollId}:
+
     get:
+      tags:
+        - Polls
       summary: Get a poll by ID
       security: []
+
       parameters:
         - name: pollId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: Poll retrieved
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Poll'
-        '404':
+          schema:
+            $ref: '#/definitions/Poll'
+
+        404:
           description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     patch:
+      tags:
+        - Polls
       summary: Update a poll
+
+      consumes:
+        - application/json
+
       parameters:
         - name: pollId
           in: path
           required: true
+          type: string
+          format: uuid
+
+        - in: body
+          name: body
+          required: true
           schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PollInput'
+            $ref: '#/definitions/PollInput'
+
       responses:
-        '200':
+        200:
           description: Poll updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Poll'
-        '400':
+          schema:
+            $ref: '#/definitions/Poll'
+
+        400:
           description: Invalid poll update data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     delete:
+      tags:
+        - Polls
       summary: Delete a poll
+
       parameters:
         - name: pollId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '204':
+        204:
           description: Poll deleted successfully
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /polls/{pollId}/options:
+
     get:
+      tags:
+        - Poll Options
       summary: List all options for a poll
       security: []
+
       parameters:
         - name: pollId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: Poll options retrieved
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PollOption'
-        '404':
-          description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PollOption'
 
     post:
+      tags:
+        - Poll Options
       summary: Add a new option to a poll
+
+      consumes:
+        - application/json
+
       parameters:
         - name: pollId
           in: path
           required: true
+          type: string
+          format: uuid
+
+        - in: body
+          name: body
+          required: true
           schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PollOptionInput'
+            $ref: '#/definitions/PollOptionInput'
+
       responses:
-        '201':
+        201:
           description: Option created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PollOption'
-        '400':
-          description: Invalid option data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/PollOption'
 
   /polls/{pollId}/votes:
+
     get:
+      tags:
+        - Votes
       summary: List all votes of a poll
+
       parameters:
         - name: pollId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: List of all votes retrieved
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Vote'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Vote'
 
     post:
+      tags:
+        - Votes
       summary: Cast a vote for a poll option
+
+      consumes:
+        - application/json
+
       parameters:
         - name: pollId
           in: path
           required: true
+          type: string
+          format: uuid
+
+        - in: body
+          name: body
+          required: true
           schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VoteInput'
+            $ref: '#/definitions/VoteInput'
+
       responses:
-        '201':
+        201:
           description: Vote recorded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vote'
-        '400':
-          description: Invalid vote data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Poll or option not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
+          schema:
+            $ref: '#/definitions/Vote'
+
+        409:
           description: User already voted in this poll
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /polls/{pollId}/results:
+
     get:
+      tags:
+        - Polls
       summary: Get poll voting results
       security: []
+
       parameters:
         - name: pollId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: Poll results returned
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  poll:
-                    $ref: '#/components/schemas/Poll'
-                  options:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        option:
-                          $ref: '#/components/schemas/PollOption'
-                        votes:
-                          type: integer
-                          format: int32
-                required:
-                  - poll
-                  - options
-        '404':
+
+        404:
           description: Poll not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /votes/{voteId}:
+
     get:
+      tags:
+        - Votes
       summary: Get a specific vote record
+
       parameters:
         - name: voteId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '200':
+        200:
           description: Vote retrieved
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vote'
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+          schema:
+            $ref: '#/definitions/Vote'
+
+        404:
           description: Vote not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     delete:
+      tags:
+        - Votes
       summary: Delete a vote
+
       parameters:
         - name: voteId
           in: path
           required: true
-          schema:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
+
       responses:
-        '204':
+        204:
           description: Vote deleted successfully
-        '401':
-          description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Vote not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
