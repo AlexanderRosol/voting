@@ -1,58 +1,136 @@
 # Voting Application
 
-## Overview
+REST API for a voting application: users, polls, poll options, votes, and results. The data model lives in `schema.sql` and the API contract in `app/openapi.yaml`. This README covers how to configure, run, and test the implementation.
 
-This repository contains a simple voting application data model and OpenAPI specification.
+## Architecture
 
-- `schema.sql` — PostgreSQL schema for users, polls, poll options, and votes.
-- `openapi.yaml` — OpenAPI 3.1 specification for the REST API.
+- **Flask** application factory in `app/app.py` (`create_app()`).
+- **SQLAlchemy 2.0** models in `app/models.py` (entities: `User`, `Poll`, `PollOption`, `Vote`).
+- **Flask-JWT-Extended** for token-based authentication. `POST /auth/token` issues a JWT; protected endpoints require `Authorization: Bearer <token>`.
+- **Blueprints**, one per resource group, in `app/views/`: `auth.py`, `users.py`, `polls.py`, `votes.py`.
+- **Flasgger** serves the OpenAPI spec at `/apidocs` for live demos.
+- **Config** in `app/config.py`. Tests inject overrides through `create_app(test_config=...)`.
 
-## What the application models
+## Prerequisites
 
-- `users` — voters
-- `polls` — voting topics
-- `poll_options` — choices belonging to a poll
-- `votes` — a user vote for a specific option in a poll
+- Python 3.10+
+- PostgreSQL 14+ (production / demo runs)
+- A virtual environment is recommended
 
-## Assignment coverage
+## Configure
 
-### Database requirements
+The default database URL is set in `app/config.py`:
 
-- Real database software model: `schema.sql` is written for PostgreSQL.
-- At least 3 tables: yes (`users`, `polls`, `poll_options`, `votes`).
-- At least 1 relationship: yes, foreign keys relate:
-  - `polls.created_by -> users.id`
-  - `poll_options.poll_id -> polls.id`
-  - `votes.user_id -> users.id`
-  - `votes.poll_id -> polls.id`
-  - `votes.option_id -> poll_options.id`
-- At least 10 columns total: yes (more than 10 columns across all tables).
+```
+postgresql+psycopg2:///voting
+```
 
-### API specification requirements
+This connects to the local PostgreSQL instance as the current OS user (peer/socket auth) against a database named `voting`. Create the database once:
 
-- REST-compliant structure: paths use nouns and are logically organized.
-- Relationship-based paths: yes, e.g. `/polls/{pollId}/options` and `/polls/{pollId}/votes`.
-- At least 9 endpoints: yes, including user, poll, option, vote, and result endpoints.
-- Each HTTP method present: GET, POST, PUT, DELETE are all included.
-- JSON structured data: yes, responses are defined in JSON.
-- Success and client error codes: yes, 200, 201, 204, 400, 401, 404, 409 are included.
-- Input validation: yes, schemas specify types and formats such as `int64`, `string`, `email`, and `date-time`.
-- Schemas reused: yes, using reusable components like `User`, `Poll`, `PollOption`, `Vote`, and input variants.
-- Valid YAML syntax: the file is written as valid OpenAPI YAML.
+```bash
+createdb voting
+```
 
-## Notes on authentication
+If you prefer to use a dedicated role with a password, edit `SQLALCHEMY_DATABASE_URI` in `app/config.py` to:
 
-`openapi.yaml` currently includes authentication-related definitions in comments. The spec is prepared to support token-based authorization, but the security sections are currently disabled in the file.
+```
+postgresql+psycopg2://<user>:<password>@localhost:5432/voting
+```
 
-To fully satisfy the original token-auth requirement, uncomment and implement the `bearerAuth` security scheme and require it on protected endpoints.
+and create the role with `createuser <user> -P`.
 
-## Files
+JWT signing key (`JWT_SECRET_KEY`) is also in `app/config.py`. The default `dev-jwt-secret` is for local lab use only.
 
-- `schema.sql` — database table definitions
-- `openapi.yaml` — API endpoint and schema definitions
+## Install
 
-## Next steps
+```bash
+cd voting
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-- Implement backend endpoints to match `openapi.yaml`.
-- Add token authentication support and enable the security sections.
-- Optionally add a computed results endpoint implementation for `/polls/{pollId}/results`.
+## Run
+
+```bash
+python run.py
+```
+
+The server binds to `http://127.0.0.1:5000`. Schema tables are created automatically on first boot via `db.create_all()`.
+
+## Swagger UI (for demo)
+
+Open `http://127.0.0.1:5000/apidocs` in a browser. Flasgger renders `app/openapi.yaml` and lets you exercise every endpoint. For protected routes click **Authorize** and paste `Bearer <token>` after obtaining one via `POST /auth/token`.
+
+## Authentication flow
+
+1. **Create a user** — `POST /users` with `{"username", "email", "password"}`. Returns the user JSON (without the password).
+2. **Get a token** — `POST /auth/token` with `{"username", "password"}`. Returns `{"access_token", "token_type": "bearer"}`.
+3. **Call protected endpoints** — include the header `Authorization: Bearer <access_token>`.
+
+Example session:
+
+```bash
+curl -sS -X POST http://127.0.0.1:5000/users \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"alice","email":"alice@example.com","password":"alicepw1"}'
+
+TOKEN=$(curl -sS -X POST http://127.0.0.1:5000/auth/token \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"alice","password":"alicepw1"}' | jq -r .access_token)
+
+curl -sS http://127.0.0.1:5000/users -H "Authorization: Bearer $TOKEN"
+```
+
+## Tests
+
+```bash
+cd voting
+pytest -q
+```
+
+Tests run against an in-memory SQLite database via the `test_config` override in `tests/conftest.py`, so PostgreSQL does not need to be running. Each implemented endpoint has at least one unit test covering both success and error paths.
+
+## Endpoint summary
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/auth/token` | public | Exchange username + password for a JWT |
+| GET | `/users` | bearer | List voters |
+| POST | `/users` | public | Create a new user |
+| GET | `/users/{userId}` | bearer | Get a specific user |
+| PUT | `/users/{userId}` | bearer (self) | Update a user |
+| DELETE | `/users/{userId}` | bearer (self) | Delete a user |
+| GET | `/polls` | public | List all polls |
+| POST | `/polls` | bearer | Create a poll |
+| GET | `/polls/{pollId}` | public | Get a poll |
+| PATCH | `/polls/{pollId}` | bearer (owner) | Update a poll |
+| DELETE | `/polls/{pollId}` | bearer (owner) | Delete a poll |
+| GET | `/polls/{pollId}/options` | public | List a poll's options |
+| POST | `/polls/{pollId}/options` | bearer (owner) | Add an option |
+| GET | `/polls/{pollId}/votes` | bearer | List votes for a poll |
+| POST | `/polls/{pollId}/votes` | bearer | Cast a vote (409 on duplicate) |
+| GET | `/polls/{pollId}/results` | public | Tallied results |
+| GET | `/votes/{voteId}` | bearer | Get a single vote record |
+| DELETE | `/votes/{voteId}` | bearer (owner) | Delete a vote |
+
+## Status codes used
+
+- `200 OK` — success with body
+- `201 Created` — resource created
+- `204 No Content` — successful delete
+- `400 Bad Request` — invalid input / malformed JSON / missing fields
+- `401 Unauthorized` — missing or invalid JWT
+- `403 Forbidden` — authenticated but not the resource owner
+- `404 Not Found` — resource missing
+- `409 Conflict` — duplicate vote (`UNIQUE(user_id, poll_id)`)
+
+Error bodies follow the `ErrorResponse` schema from `openapi.yaml`:
+
+```json
+{ "code": 400, "message": "..." }
+```
+
+## Spec deviations
+
+`openapi.yaml`'s `UserInput` schema lists only `username` and `email`, but `schema.sql` declares `password NOT NULL`. The implementation accepts an additional `password` field on `POST /users` so newly created users can authenticate via `POST /auth/token`. This is the only deviation from `openapi.yaml`.

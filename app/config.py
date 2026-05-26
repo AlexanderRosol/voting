@@ -1,24 +1,9 @@
-# https://flask.palletsprojects.com/en/3.0.x/config/#SECRET_KEY
 SECRET_KEY = 'dev'  # does not matter - for lab only
 
 JSON_SORT_KEYS = False
-BABEL_DEFAULT_LOCALE = 'en'
-PAGINATION_PER_PAGE = 5
 TEMPLATES_AUTO_RELOAD = True
 
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://voting:voting@localhost:5432/voting'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2:///voting'
 
-# Flask-Security-Too module directives
-SECURITY_PASSWORD_SALT = '167188741953294952065079255867006765106'  # does not matter - for lab only
-SECURITY_USERNAME_ENABLE = True
-SECURITY_USERNAME_REQUIRED = True
-SECURITY_REGISTERABLE = True
-SECURITY_CONFIRMABLE = False
-SECURITY_SEND_REGISTER_EMAIL = False
-SECURITY_SEND_PASSWORD_CHANGE_EMAIL = False
-SECURITY_SEND_PASSWORD_RESET_EMAIL = False
-SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL = False
-SECURITY_POST_REGISTER_VIEW = '/registered'
-
-SESSION_COOKIE_DOMAIN = '.lab.kis.agh.edu.pl'
-SESSION_COOKIE_HTTPONLY = False
+JWT_SECRET_KEY = 'dev-jwt-secret'  # does not matter - for lab only
+JWT_ACCESS_TOKEN_EXPIRES = False
