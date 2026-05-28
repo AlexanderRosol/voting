@@ -3,12 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from passlib.hash import bcrypt
 from sqlalchemy.exc import IntegrityError
-
-try:
-    from email_validator import validate_email, EmailNotValidError
-    HAS_EMAIL_VALIDATOR = True
-except ImportError:
-    HAS_EMAIL_VALIDATOR = False
+from email_validator import validate_email, EmailNotValidError
 
 from ..app import db
 from ..models import User
@@ -32,13 +27,11 @@ def _serialize_user(u):
 def _validate_email(value):
     if not isinstance(value, str) or not (1 <= len(value) <= 255):
         return False
-    if HAS_EMAIL_VALIDATOR:
-        try:
-            validate_email(value, check_deliverability=False)
-        except EmailNotValidError:
-            return False
-        return True
-    return '@' in value and '.' in value.split('@')[-1]
+    try:
+        validate_email(value, check_deliverability=False)
+    except EmailNotValidError:
+        return False
+    return True
 
 
 def _current_user_id():

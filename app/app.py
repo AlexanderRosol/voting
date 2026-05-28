@@ -18,13 +18,6 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    app.debug = app.config.get('DEBUG', True)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
     db.init_app(app)
     jwt.init_app(app)
 
